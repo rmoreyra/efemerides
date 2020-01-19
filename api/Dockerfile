@@ -1,9 +1,6 @@
 FROM python:3.6.9
 
-# USER app
 ENV PYTHONUNBUFFERED 1
-# RUN mkdir /db
-#RUN chown app:app -R /db
 
 RUN mkdir /code
 WORKDIR /code
