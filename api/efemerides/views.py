@@ -34,10 +34,18 @@ class EfemeridesViewSet(
         """
         Build dict with all ephemeris in month
         """
+
+        def add_value_dict(key, dict_data, msj=None):
+            if key in dict_data.keys():
+                dict_data[key] = dict_data[key] + [msj]
+            else:
+                dict_data[key] = [msj]
+            return dict_data
+
         result_data = dict()
         for efem in list_efem_month:
             datetime_efem = efem.date_efem
-            result_data[str(datetime_efem.day)] = efem.msj_efem
+            result_data = add_value_dict(str(datetime_efem.day), result_data, efem.msj_efem)
         return result_data
 
     def _get_list_efem(self, date_find, date_day_of_month):
@@ -80,19 +88,41 @@ class EfemeridesViewSet(
         result_data[MONTH] = self._build_efem_month(list_efem)
         return result_data
 
+    def _valid_day(self, date_find):
+        """
+        Check format of day
+        """
+        try:
+           datetime.strptime(date_find, settings.TIME_FORMAT)
+           valid = True
+        except ValueError:
+            valid = False
+        return valid
+
     def list(self, request, *args, **kwargs):
         if not dict(request.query_params):
             queryset = Efemerides.objects.all()
             data = list(queryset.values())
             return JsonResponse(data, safe=False)
+
         date_find = self._get_date_find(request)
+
+        if not self._valid_day(date_find):
+            msj_error = 'Invalid date format in day parameter'
+            return Response(
+                {'error': msj_error, 'info' : 'Correct format is yyyy-mm-dd'},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+
         efem = self._get_efem(date_find)
+
         if not list(efem.values()):
             msj_error = 'not info to {}'.format(date_find)
             return Response(
                 {'error': msj_error},
                 status=status.HTTP_400_BAD_REQUEST
             )
+
         date_day_of_month = self._get_last_date_month(date_find)
 
         list_efem = self._get_list_efem(date_find, date_day_of_month)
