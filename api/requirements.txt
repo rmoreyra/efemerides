@@ -1,5 +1,5 @@
 Django==1.10.6
-djangorestframework==3.6.2
+djangorestframework==3.11.2
 django-rest-swagger==2.1.2
 django-extensions==1.7.7
 requests==2.13.0
